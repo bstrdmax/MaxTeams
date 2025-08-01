@@ -17,6 +17,7 @@
             <div class="rail-item active" aria-label="Clients"><i class="fas fa-users"></i></div>
             <div class="rail-item" aria-label="Files"><i class="fas fa-folder"></i></div>
             <div class="rail-item" aria-label="Activity"><i class="fas fa-bell"></i></div>
+            <div id="help-btn" class="rail-item" aria-label="Help & Documentation"><i class="fas fa-question-circle"></i></div>
             <div class="rail-item" aria-label="Settings"><i class="fas fa-cog"></i></div>
         </nav>
 
@@ -24,6 +25,7 @@
             <aside class="list-pane">
                 <div class="list-pane-header">
                     <h2>Clients</h2>
+                    <button id="add-channel-btn" class="add-btn" aria-label="Add new client group"><i class="fas fa-plus"></i></button>
                 </div>
                 <ul class="channels-list" id="channels-list">
                     <li class="channel active" data-channel-name="Project Phoenix"><a># project-phoenix</a></li>
@@ -43,8 +45,8 @@
                     <h3 id="chat-header-title"># project-phoenix</h3>
                     <div class="header-actions">
                         <button id="video-call-btn" class="header-btn" aria-label="Start Video Call"><i class="fas fa-video"></i></button>
-                        <button id="screen-share-btn" class="header-btn" aria-label="Start Screen Share"><i class="fas fa-desktop"></i></button>
-                        <button id="record-btn" class="header-btn" aria-label="Record Session"><i class="fas fa-record-vinyl"></i></button>
+                        <button id="screen-share-btn" class="header-btn" aria-label="Record a How-To Guide"><i class="fas fa-desktop"></i></button>
+                        <button id="transcription-btn" class="header-btn" aria-label="Show Transcription" disabled><i class="fas fa-file-alt"></i></button>
                     </div>
                 </header>
                 <div class="messages-list" id="messages-list">
@@ -58,9 +60,135 @@
                     </form>
                 </div>
             </main>
+            
+            <aside class="transcription-pane" id="transcription-pane">
+                <div class="transcription-header">
+                    <h4>Meeting Transcription</h4>
+                    <button class="close-transcription-btn" aria-label="Close Transcription"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="transcription-content" id="transcription-content">
+                     <div id="transcription-placeholder" class="placeholder">
+                        <i class="fas fa-file-alt"></i>
+                        <p>Your meeting transcript will appear here after recording.</p>
+                    </div>
+                    <div id="transcription-loading" class="placeholder hidden">
+                        <div class="spinner"></div>
+                        <p>Transcribing audio, please wait...</p>
+                    </div>
+                    <div id="transcription-output" class="output"></div>
+                </div>
+            </aside>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <!-- Modals and Overlays -->
+    <div id="add-channel-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Create New Client Group</h2>
+            <form id="add-channel-form">
+                <label for="new-channel-name">Channel Name</label>
+                <input type="text" id="new-channel-name" placeholder="e.g., #project-gamma" required>
+                <div class="modal-actions">
+                    <button type="button" id="modal-cancel-btn" class="modal-btn">Cancel</button>
+                    <button type="submit" class="modal-btn primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="meeting-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="close-meeting-modal-btn" class="modal-close-btn" aria-label="Close"><i class="fas fa-times"></i></button>
+            <h2>Meeting Ready</h2>
+            <p>Share this link with others to invite them.</p>
+            <div class="meeting-link-container">
+                <input type="text" id="meeting-link" value="https://meet.app/xyz-abc-123" readonly>
+                <button id="copy-link-btn" aria-label="Copy meeting link"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <button id="start-call-btn" class="modal-btn primary full-width">Join Now</button>
+        </div>
+    </div>
+
+    <div id="video-call-view" class="video-call-overlay hidden">
+        <video id="remote-video" autoplay playsinline></video>
+        <div class="local-video-container">
+             <video id="local-video" autoplay playsinline muted></video>
+        </div>
+        <div class="video-controls">
+            <button id="toggle-mic-btn" class="control-btn" aria-label="Mute Microphone"><i class="fas fa-microphone"></i></button>
+            <button id="toggle-video-btn" class="control-btn" aria-label="Stop Video"><i class="fas fa-video"></i></button>
+            <button id="record-transcribe-btn" class="control-btn record" aria-label="Record and Transcribe"><i class="fas fa-circle"></i> <span>Record</span></button>
+            <button id="end-call-btn" class="control-btn end-call" aria-label="End Call"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+    
+    <div id="step-recorder-controls" class="step-recorder-controls hidden">
+        <div class="recorder-status">
+            <i class="fas fa-record-vinyl"></i>
+            <span>Recording Guide</span>
+        </div>
+        <div class="recorder-actions">
+            <button id="capture-step-btn" class="recorder-btn" aria-label="Capture current step">
+                <i class="fas fa-camera"></i> Capture Step
+            </button>
+            <button id="finish-recording-btn" class="recorder-btn primary" aria-label="Finish and generate guide">
+                <i class="fas fa-check-circle"></i> Finish & Generate
+            </button>
+             <button id="cancel-recording-btn" class="recorder-btn danger" aria-label="Cancel recording">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="docs-modal" class="modal-overlay hidden">
+        <div class="modal-content docs-content">
+            <button id="close-docs-modal-btn" class="modal-close-btn" aria-label="Close"><i class="fas fa-times"></i></button>
+            <h2>How to use the Client Hub</h2>
+            <p>Learn how to use the powerful features available to you.</p>
+            <div class="docs-accordion">
+                <details>
+                    <summary>
+                        <span><i class="fas fa-video"></i> Video Calls & Transcription</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </summary>
+                    <div class="docs-panel">
+                        <p><strong>Starting a Call:</strong> Click the <i class="fas fa-video"></i> icon in the chat header to open the meeting lobby. Share the link and click "Join Now".</p>
+                        <p><strong>Recording & Transcribing:</strong> Once in a call, click the <i class="fas fa-circle"></i> Record button. After you stop the recording, the audio will be automatically transcribed by AI. A notification will appear in the chat, and you can view the full transcript in the side panel.</p>
+                    </div>
+                </details>
+                <details>
+                    <summary>
+                        <span><i class="fas fa-desktop"></i> Creating How-To Guides</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </summary>
+                    <div class="docs-panel">
+                        <p><strong>Start Recording:</strong> Click the <i class="fas fa-desktop"></i> icon in the chat header. This will start a screen share session.</p>
+                        <p><strong>Capture Steps:</strong> As you perform actions on your screen, click the "Capture Step" button in the control bar at the bottom. Each click saves a screenshot.</p>
+                         <p><strong>Generate Guide:</strong> When you're done, click "Finish & Generate". Our AI will analyze each screenshot, write a description for the action, and post a complete step-by-step guide directly into the chat.</p>
+                    </div>
+                </details>
+                <details>
+                    <summary>
+                         <span><i class="fas fa-comments"></i> Chat & Channels</span>
+                         <i class="fas fa-chevron-down"></i>
+                    </summary>
+                    <div class="docs-panel">
+                         <p><strong>Switching Channels:</strong> Simply click on any channel name in the left-hand list to view its messages.</p>
+                         <p><strong>Creating a Channel:</strong> Click the <i class="fas fa-plus"></i> icon at the top of the channel list to create a new client group or discussion space.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.run/@google/genai"
+      }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>
