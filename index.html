@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Collaboration Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="left-rail">
+            <div class="rail-item active" aria-label="Clients"><i class="fas fa-users"></i></div>
+            <div class="rail-item" aria-label="Files"><i class="fas fa-folder"></i></div>
+            <div class="rail-item" aria-label="Activity"><i class="fas fa-bell"></i></div>
+            <div class="rail-item" aria-label="Settings"><i class="fas fa-cog"></i></div>
+        </nav>
+
+        <div class="main-content">
+            <aside class="list-pane">
+                <div class="list-pane-header">
+                    <h2>Clients</h2>
+                </div>
+                <ul class="channels-list" id="channels-list">
+                    <li class="channel active" data-channel-name="Project Phoenix"><a># project-phoenix</a></li>
+                    <li class="channel" data-channel-name="Client Acme Corp"><a># acme-corp</a></li>
+                    <li class="channel" data-channel-name="General Discussion"><a># general</a></li>
+                    <li class="channel" data-channel-name="Internal Development"><a># internal-dev</a></li>
+                </ul>
+                <div class="user-profile">
+                    <img src="https://i.pravatar.cc/40?u=user" alt="User Avatar" class="avatar">
+                    <span class="username">Service Provider</span>
+                </div>
+            </aside>
+
+            <main class="chat-area">
+                <header class="chat-header">
+                    <button class="back-btn" aria-label="Back to channels list"><i class="fas fa-arrow-left"></i></button>
+                    <h3 id="chat-header-title"># project-phoenix</h3>
+                    <div class="header-actions">
+                        <button id="video-call-btn" class="header-btn" aria-label="Start Video Call"><i class="fas fa-video"></i></button>
+                        <button id="screen-share-btn" class="header-btn" aria-label="Start Screen Share"><i class="fas fa-desktop"></i></button>
+                        <button id="record-btn" class="header-btn" aria-label="Record Session"><i class="fas fa-record-vinyl"></i></button>
+                    </div>
+                </header>
+                <div class="messages-list" id="messages-list">
+                    <!-- Messages will be dynamically loaded here -->
+                </div>
+                <div class="message-input-container">
+                    <form id="message-form" class="message-form">
+                        <button id="file-share-btn" type="button" class="attach-btn" aria-label="Attach File"><i class="fas fa-paperclip"></i></button>
+                        <input type="text" id="message-input" placeholder="Message #project-phoenix" autocomplete="off" aria-label="Message Input">
+                        <button type="submit" class="send-btn" aria-label="Send Message"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="script.js"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
