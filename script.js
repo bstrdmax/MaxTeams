@@ -8,10 +8,12 @@ const state = {
     audioChunks: [],
     localStream: null,
     isRecording: false,
-    lastTranscription: "",
+    transcripts: {}, // e.g., { 'channel-name': 'transcription text' }
     isRecordingSteps: false,
     screenStream: null,
     capturedSteps: [],
+    files: {}, // e.g., { 'channel-name': [{ name, user, time }] }
+    activityLog: [], // e.g., [{ icon, text, time }]
 };
 
 const users = {
@@ -81,11 +83,102 @@ document.addEventListener('DOMContentLoaded', () => {
         closeDocsModalBtn: document.getElementById('close-docs-modal-btn'),
         sidebarNav: document.querySelector('.sidebar-nav'),
         contentPanes: document.querySelectorAll('.content-pane'),
+        filesPane: document.getElementById('files-pane'),
+        activityPane: document.getElementById('activity-pane'),
     };
 
-    // --- UI & Chat Functions ---
+    // --- State & Helper Functions ---
 
     const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const getFileIconClass = (fileName) => {
+        const extension = fileName.split('.').pop().toLowerCase();
+        switch (extension) {
+            case 'png':
+            case 'jpg':
+            case 'jpeg':
+            case 'gif':
+            case 'webp':
+                return 'fa-file-image';
+            case 'pdf':
+                return 'fa-file-pdf';
+            case 'zip':
+            case 'rar':
+                return 'fa-file-zipper';
+            case 'doc':
+            case 'docx':
+                return 'fa-file-word';
+            case 'xls':
+            case 'xlsx':
+                return 'fa-file-excel';
+            case 'ppt':
+            case 'pptx':
+                return 'fa-file-powerpoint';
+            default:
+                return 'fa-file-alt';
+        }
+    };
+
+    const addActivity = (icon, text) => {
+        state.activityLog.unshift({ icon, text, time: getTime() });
+        if (document.querySelector('.nav-item[data-tab="activity"]').classList.contains('active')) {
+            renderActivityPane();
+        }
+    };
+
+    const addFileToState = (fileName, user, time) => {
+        if (!state.files[state.activeChannel]) {
+            state.files[state.activeChannel] = [];
+        }
+        state.files[state.activeChannel].unshift({ name: fileName, user: users[user].name, time });
+    };
+
+    // --- UI Rendering Functions ---
+
+    const renderFilesPane = () => {
+        const files = state.files[state.activeChannel] || [];
+        if (files.length === 0) {
+            DOM.filesPane.innerHTML = `
+                <div class="placeholder-pane active">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No Files Shared</h3>
+                    <p>Attach files in this channel and they'll show up here.</p>
+                </div>`;
+        } else {
+            const fileListHtml = files.map(file => `
+                <div class="file-item">
+                    <i class="fas ${getFileIconClass(file.name)}"></i>
+                    <div class="file-details">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-meta">Shared by ${file.user} at ${file.time}</span>
+                    </div>
+                </div>
+            `).join('');
+            DOM.filesPane.innerHTML = `<div class="dynamic-list">${fileListHtml}</div>`;
+        }
+    };
+    
+    const renderActivityPane = () => {
+        if (state.activityLog.length === 0) {
+            DOM.activityPane.innerHTML = `
+                <div class="placeholder-pane active">
+                     <i class="fas fa-bell-slash"></i>
+                    <h3>No Recent Activity</h3>
+                    <p>Create channels or share files to see activity here.</p>
+                </div>`;
+        } else {
+             const activityListHtml = state.activityLog.map(act => `
+                <div class="activity-item">
+                    <i class="fas ${act.icon}"></i>
+                    <div class="activity-details">
+                        <p class="activity-text">${act.text}</p>
+                        <span class="activity-time">${act.time}</span>
+                    </div>
+                </div>
+             `).join('');
+             DOM.activityPane.innerHTML = `<div class="dynamic-list">${activityListHtml}</div>`;
+        }
+    };
 
     const addMessage = (channel, user, text) => {
         const messageEl = document.createElement('div');
@@ -155,8 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.chatHeaderTitle.textContent = `# ${state.activeChannel}`;
         DOM.messageInput.placeholder = `Message #${state.activeChannel}`;
         loadMessages(state.activeChannel);
+        renderFilesPane(); // Update files list for new channel
 
-        DOM.transcriptionBtn.disabled = !state.lastTranscription;
+        DOM.transcriptionBtn.disabled = !state.transcripts[state.activeChannel];
 
         if (window.innerWidth < 768) {
             DOM.appContainer.classList.remove('sidebar-visible');
@@ -177,8 +271,12 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.channelsList.appendChild(li);
 
         initialMessages[channelName] = [];
+        state.files[channelName] = [];
+        state.transcripts[channelName] = null;
         li.addEventListener('click', () => switchChannel(li));
         switchChannel(li);
+
+        addActivity('fa-plus-circle', `You created channel <strong>#${channelName}</strong>.`);
 
         DOM.addChannelModal.classList.add('hidden');
         DOM.newChannelNameInput.value = '';
@@ -196,6 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.contentPanes.forEach(pane => {
             pane.classList.toggle('active', pane.id === `${tabName}-pane`);
         });
+
+        // Render dynamic content
+        if (tabName === 'files') {
+            renderFilesPane();
+        } else if (tabName === 'activity') {
+            renderActivityPane();
+        }
     };
     
     // --- Video Call & Transcription Functions ---
@@ -266,11 +371,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const transcriptionText = await transcribeAudio(audioBlob);
-            state.lastTranscription = transcriptionText;
-            DOM.transcriptionOutput.textContent = state.lastTranscription;
+            state.transcripts[state.activeChannel] = transcriptionText;
+            DOM.transcriptionOutput.textContent = state.transcripts[state.activeChannel];
             DOM.transcriptionLoading.classList.add('hidden');
             DOM.transcriptionBtn.disabled = false;
             addSystemMessage('Meeting transcript is ready. <button class="view-transcription-btn">View Transcript</button>');
+            addActivity('fa-microphone-alt', `A meeting transcript was generated in <strong>#${state.activeChannel}</strong>.`);
         } catch (error) {
             console.error("Transcription Error:", error);
             DOM.transcriptionOutput.textContent = "Error transcribing audio. Please try again.";
@@ -347,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const guide = await generateGuideFromSteps(state.capturedSteps);
             renderGuideInChat(guide, messageEl);
+            addActivity('fa-list-ol', `A How-To Guide was created in <strong>#${state.activeChannel}</strong>.`);
         } catch (error) {
             console.error("Failed to generate guide:", error);
             messageEl.querySelector('.message-text').textContent = 'An error occurred while generating the guide.';
@@ -399,6 +506,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if(file) {
                 addSystemMessage(`Attached file: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`);
+                addFileToState(file.name, 'user', getTime());
+                addActivity('fa-paperclip', `You attached <strong>${file.name}</strong> in #${state.activeChannel}.`);
+                if (document.querySelector('.nav-item[data-tab="files"]').classList.contains('active')) {
+                    renderFilesPane();
+                }
             }
             DOM.fileInput.value = ''; // Reset for next selection
         });
@@ -414,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (DOM.appContainer.classList.contains('transcription-visible')) {
                     DOM.transcriptionPlaceholder.classList.add('hidden');
                     DOM.transcriptionLoading.classList.add('hidden');
-                    DOM.transcriptionOutput.textContent = state.lastTranscription;
+                    DOM.transcriptionOutput.textContent = state.transcripts[state.activeChannel] || 'No transcript available for this channel.';
                 }
             }
         });
@@ -470,7 +582,14 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.cancelRecordingBtn.addEventListener('click', cleanupStepRecording);
 
         DOM.helpBtn.addEventListener('click', () => DOM.docsModal.classList.remove('hidden'));
-        DOM.settingsBtn.addEventListener('click', () => alert('Settings clicked! This can be expanded to show a settings modal.'));
+        
+        DOM.settingsBtn.addEventListener('click', () => {
+            const automateTab = document.querySelector('.nav-item[data-tab="automate"]');
+            if (automateTab) {
+                switchSidebarTab(automateTab);
+            }
+        });
+
         DOM.closeDocsModalBtn.addEventListener('click', () => DOM.docsModal.classList.add('hidden'));
         DOM.docsModal.addEventListener('click', (e) => {
             if (e.target === DOM.docsModal) DOM.docsModal.classList.add('hidden');
@@ -485,6 +604,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const initialActiveChannel = document.querySelector('.channel.active');
         if (initialActiveChannel) {
             switchChannel(initialActiveChannel);
+        }
+        // Initialize all panes with their default state
+        renderFilesPane();
+        renderActivityPane();
+
+        // On mobile, start with the sidebar visible
+        if (window.innerWidth <= 768) {
+            DOM.appContainer.classList.add('sidebar-visible');
         }
     };
 
