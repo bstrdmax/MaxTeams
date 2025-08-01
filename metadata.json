@@ -1,0 +1,8 @@
+{
+  "name": "Client Collaboration Hub",
+  "description": "A collaboration tool similar to Slack and Microsoft Teams for client communication, featuring chat, video calls, and file sharing.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
