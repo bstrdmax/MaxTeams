@@ -1,19 +1,15 @@
+
 {
   "name": "client-collaboration-hub",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "A collaboration tool with chat, video, and AI features.",
+  "main": "main.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "http-server -c-1"
   },
-  "dependencies": {
-
-  },
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "http-server": "^14.1.1"
   }
 }
