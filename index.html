@@ -12,72 +12,92 @@
 </head>
 <body>
     <div class="app-container">
-        <nav class="left-rail">
-            <div class="rail-item active" aria-label="Clients"><i class="fas fa-users"></i></div>
-            <div class="rail-item" aria-label="Files"><i class="fas fa-folder"></i></div>
-            <div class="rail-item" aria-label="Activity"><i class="fas fa-bell"></i></div>
-            <div id="help-btn" class="rail-item" aria-label="Help & Documentation"><i class="fas fa-question-circle"></i></div>
-            <div class="rail-item" aria-label="Settings"><i class="fas fa-cog"></i></div>
-        </nav>
-
-        <div class="main-content">
-            <aside class="list-pane">
-                <div class="list-pane-header">
-                    <h2>Clients</h2>
-                    <button id="add-channel-btn" class="add-btn" aria-label="Add new client group"><i class="fas fa-plus"></i></button>
+        <aside class="unified-sidebar">
+            <div class="sidebar-header">
+                <h2>Clients</h2>
+                <button id="add-channel-btn" class="add-btn" aria-label="Add new client group"><i class="fas fa-plus"></i></button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-tab="chats" aria-label="Chats"><i class="fas fa-comments"></i><span>Chats</span></div>
+                <div class="nav-item" data-tab="files" aria-label="Files"><i class="fas fa-folder"></i><span>Files</span></div>
+                <div class="nav-item" data-tab="activity" aria-label="Activity"><i class="fas fa-bell"></i><span>Activity</span></div>
+                <div class="nav-item" data-tab="automate" aria-label="Automate"><i class="fas fa-robot"></i><span>Automate</span></div>
+            </nav>
+            <div class="sidebar-content">
+                <div id="chats-pane" class="content-pane active">
+                    <ul class="channels-list" id="channels-list">
+                        <li class="channel active" data-channel-name="Project Phoenix"><a># project-phoenix</a></li>
+                        <li class="channel" data-channel-name="Client Acme Corp"><a># acme-corp</a></li>
+                        <li class="channel" data-channel-name="General Discussion"><a># general</a></li>
+                        <li class="channel" data-channel-name="Internal Development"><a># internal-dev</a></li>
+                    </ul>
                 </div>
-                <ul class="channels-list" id="channels-list">
-                    <li class="channel active" data-channel-name="Project Phoenix"><a># project-phoenix</a></li>
-                    <li class="channel" data-channel-name="Client Acme Corp"><a># acme-corp</a></li>
-                    <li class="channel" data-channel-name="General Discussion"><a># general</a></li>
-                    <li class="channel" data-channel-name="Internal Development"><a># internal-dev</a></li>
-                </ul>
+                <div id="files-pane" class="content-pane placeholder-pane">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>Files</h3>
+                    <p>All shared files for the active channel will appear here.</p>
+                </div>
+                <div id="activity-pane" class="content-pane placeholder-pane">
+                     <i class="fas fa-bell"></i>
+                    <h3>Activity</h3>
+                    <p>Recent notifications and mentions will be shown here.</p>
+                </div>
+                 <div id="automate-pane" class="content-pane placeholder-pane">
+                     <i class="fas fa-robot"></i>
+                    <h3>Automation Hub</h3>
+                    <p>Configure AI summaries, meeting follow-ups, and other automations.</p>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div id="help-btn" class="footer-item" aria-label="Help & Documentation"><i class="fas fa-question-circle"></i></div>
+                <div id="settings-btn" class="footer-item" aria-label="Settings"><i class="fas fa-cog"></i></div>
                 <div class="user-profile">
                     <img src="https://i.pravatar.cc/40?u=user" alt="User Avatar" class="avatar">
                     <span class="username">Service Provider</span>
                 </div>
-            </aside>
+            </div>
+        </aside>
 
-            <main class="chat-area">
-                <header class="chat-header">
-                    <button class="back-btn" aria-label="Back to channels list"><i class="fas fa-arrow-left"></i></button>
-                    <h3 id="chat-header-title"># project-phoenix</h3>
-                    <div class="header-actions">
-                        <button id="video-call-btn" class="header-btn" aria-label="Start Video Call"><i class="fas fa-video"></i></button>
-                        <button id="screen-share-btn" class="header-btn" aria-label="Record a How-To Guide"><i class="fas fa-desktop"></i></button>
-                        <button id="transcription-btn" class="header-btn" aria-label="Show Transcription" disabled><i class="fas fa-file-alt"></i></button>
-                    </div>
-                </header>
-                <div class="messages-list" id="messages-list">
-                    <!-- Messages will be dynamically loaded here -->
+        <main class="chat-area">
+            <header class="chat-header">
+                <button class="back-btn" aria-label="Back to channels list"><i class="fas fa-arrow-left"></i></button>
+                <h3 id="chat-header-title"># project-phoenix</h3>
+                <div class="header-actions">
+                    <button id="video-call-btn" class="header-btn" aria-label="Start Video Call"><i class="fas fa-video"></i></button>
+                    <button id="screen-share-btn" class="header-btn" aria-label="Record a How-To Guide"><i class="fas fa-desktop"></i></button>
+                    <button id="transcription-btn" class="header-btn" aria-label="Show Transcription" disabled><i class="fas fa-file-alt"></i></button>
                 </div>
-                <div class="message-input-container">
-                    <form id="message-form" class="message-form">
-                        <button id="file-share-btn" type="button" class="attach-btn" aria-label="Attach File"><i class="fas fa-paperclip"></i></button>
-                        <input type="text" id="message-input" placeholder="Message #project-phoenix" autocomplete="off" aria-label="Message Input">
-                        <button type="submit" class="send-btn" aria-label="Send Message"><i class="fas fa-paper-plane"></i></button>
-                    </form>
+            </header>
+            <div class="messages-list" id="messages-list">
+                <!-- Messages will be dynamically loaded here -->
+            </div>
+            <div class="message-input-container">
+                <form id="message-form" class="message-form">
+                    <input type="file" id="file-input" class="hidden">
+                    <button id="file-share-btn" type="button" class="attach-btn" aria-label="Attach File"><i class="fas fa-paperclip"></i></button>
+                    <input type="text" id="message-input" placeholder="Message #project-phoenix" autocomplete="off" aria-label="Message Input">
+                    <button type="submit" class="send-btn" aria-label="Send Message"><i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </main>
+        
+        <aside class="transcription-pane" id="transcription-pane">
+            <div class="transcription-header">
+                <h4>Meeting Transcription</h4>
+                <button class="close-transcription-btn" aria-label="Close Transcription"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="transcription-content" id="transcription-content">
+                 <div id="transcription-placeholder" class="placeholder">
+                    <i class="fas fa-file-alt"></i>
+                    <p>Your meeting transcript will appear here after recording.</p>
                 </div>
-            </main>
-            
-            <aside class="transcription-pane" id="transcription-pane">
-                <div class="transcription-header">
-                    <h4>Meeting Transcription</h4>
-                    <button class="close-transcription-btn" aria-label="Close Transcription"><i class="fas fa-times"></i></button>
+                <div id="transcription-loading" class="placeholder hidden">
+                    <div class="spinner"></div>
+                    <p>Transcribing audio, please wait...</p>
                 </div>
-                <div class="transcription-content" id="transcription-content">
-                     <div id="transcription-placeholder" class="placeholder">
-                        <i class="fas fa-file-alt"></i>
-                        <p>Your meeting transcript will appear here after recording.</p>
-                    </div>
-                    <div id="transcription-loading" class="placeholder hidden">
-                        <div class="spinner"></div>
-                        <p>Transcribing audio, please wait...</p>
-                    </div>
-                    <div id="transcription-output" class="output"></div>
-                </div>
-            </aside>
-        </div>
+                <div id="transcription-output" class="output"></div>
+            </div>
+        </aside>
     </div>
 
     <!-- Modals and Overlays -->
@@ -145,6 +165,18 @@
             <h2>How to use the Client Hub</h2>
             <p>Learn how to use the powerful features available to you.</p>
             <div class="docs-accordion">
+                 <details>
+                    <summary>
+                         <span><i class="fas fa-compass"></i> Navigation & Basics</span>
+                         <i class="fas fa-chevron-down"></i>
+                    </summary>
+                    <div class="docs-panel">
+                         <p><strong>Switching Channels:</strong> In the 'Chats' tab, simply click on any channel name in the list to view its messages.</p>
+                         <p><strong>Creating a Channel:</strong> Click the <i class="fas fa-plus"></i> icon at the top of the sidebar to create a new client group.</p>
+                         <p><strong>Attaching a File:</strong> Click the <i class="fas fa-paperclip"></i> icon in the message input bar to open your file browser and select a file to share.</p>
+                         <p><strong>Using Sidebar Tabs:</strong> Click the 'Chats', 'Files', 'Activity', or 'Automate' icons to switch between different views and features in the sidebar.</p>
+                    </div>
+                </details>
                 <details>
                     <summary>
                         <span><i class="fas fa-video"></i> Video Calls & Transcription</span>
@@ -152,7 +184,8 @@
                     </summary>
                     <div class="docs-panel">
                         <p><strong>Starting a Call:</strong> Click the <i class="fas fa-video"></i> icon in the chat header to open the meeting lobby. Share the link and click "Join Now".</p>
-                        <p><strong>Recording & Transcribing:</strong> Once in a call, click the <i class="fas fa-circle"></i> Record button. After you stop the recording, the audio will be automatically transcribed by AI. A notification will appear in the chat, and you can view the full transcript in the side panel.</p>
+                        <p><strong>Recording & Transcribing:</strong> Once in a call, click the <i class="fas fa-circle"></i> Record button. After you stop the recording, the audio will be automatically transcribed by AI. A notification will appear in the chat.</p>
+                        <p><strong>Viewing a Transcript:</strong> Click the 'View Transcript' button in the notification, or click the <i class="fas fa-file-alt"></i> icon in the chat header to open and close the transcription panel on the right.</p>
                     </div>
                 </details>
                 <details>
@@ -166,14 +199,14 @@
                          <p><strong>Generate Guide:</strong> When you're done, click "Finish & Generate". Our AI will analyze each screenshot, write a description for the action, and post a complete step-by-step guide directly into the chat.</p>
                     </div>
                 </details>
-                <details>
+                 <details>
                     <summary>
-                         <span><i class="fas fa-comments"></i> Chat & Channels</span>
-                         <i class="fas fa-chevron-down"></i>
+                        <span><i class="fas fa-robot"></i> Automation Hub</span>
+                        <i class="fas fa-chevron-down"></i>
                     </summary>
                     <div class="docs-panel">
-                         <p><strong>Switching Channels:</strong> Simply click on any channel name in the left-hand list to view its messages.</p>
-                         <p><strong>Creating a Channel:</strong> Click the <i class="fas fa-plus"></i> icon at the top of the channel list to create a new client group or discussion space.</p>
+                        <p>The 'Automate' tab is the future home for powerful AI-driven features.</p>
+                        <p>Soon, you will be able to configure automated chat summaries, AI-generated meeting follow-up emails, and much more right from this panel.</p>
                     </div>
                 </details>
             </div>
