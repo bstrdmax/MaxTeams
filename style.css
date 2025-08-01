@@ -1,15 +1,15 @@
 :root {
-    --primary-bg: #1f1f1f;
-    --secondary-bg: #2b2b2b;
-    --tertiary-bg: #252525;
-    --interactive-bg-hover: #3a3a3a;
-    --primary-text: #e1e1e1;
-    --secondary-text: #b3b3b3;
+    --primary-bg: #1a161f;
+    --secondary-bg: #25202d;
+    --tertiary-bg: #1f1a26;
+    --interactive-bg-hover: #3a3347;
+    --primary-text: #e8e6e9;
+    --secondary-text: #b0a9b8;
     --header-text: #ffffff;
-    --accent-color: #7b83eb;
-    --accent-color-hover: #6a73d9;
-    --input-bg: #333333;
-    --border-color: #363636;
+    --accent-color: #9b59b6;
+    --accent-color-hover: #ab6dd1;
+    --input-bg: #3a3347;
+    --border-color: #4a415a;
     --danger-color: #e74c3c;
     --danger-color-hover: #c0392b;
 }
@@ -421,6 +421,8 @@ body {
 .transcription-content .placeholder i {
     font-size: 3rem;
     margin-bottom: 1rem;
+    color: var(--accent-color);
+    opacity: 0.5;
 }
 
 .transcription-content .output {
@@ -448,6 +450,7 @@ body {
     max-width: 400px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     position: relative;
+    border: 1px solid var(--border-color);
 }
 
 .modal-content h2 {
