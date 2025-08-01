@@ -1,8 +1,10 @@
+
 {
   "name": "Client Collaboration Hub",
-  "description": "A collaboration tool similar to Slack and Microsoft Teams for client communication, featuring chat, video calls, and file sharing.",
+  "description": "A collaboration tool for client communication. TO RUN: Open a terminal and run 'npm install', then 'npm start'. You must also add your Google AI API key to the config.js file.",
   "requestFramePermissions": [
     "camera",
     "microphone"
-  ]
+  ],
+  "prompt": ""
 }
