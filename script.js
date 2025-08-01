@@ -45,11 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
         messagesList: document.getElementById('messages-list'),
         messageForm: document.getElementById('message-form'),
         messageInput: document.getElementById('message-input'),
+        fileInput: document.getElementById('file-input'),
+        fileShareBtn: document.getElementById('file-share-btn'),
         backBtn: document.querySelector('.back-btn'),
         transcriptionBtn: document.getElementById('transcription-btn'),
         closeTranscriptionBtn: document.querySelector('.close-transcription-btn'),
-        mainContent: document.querySelector('.main-content'),
-        transcriptionContent: document.getElementById('transcription-content'),
+        transcriptionPane: document.getElementById('transcription-pane'),
         transcriptionPlaceholder: document.getElementById('transcription-placeholder'),
         transcriptionLoading: document.getElementById('transcription-loading'),
         transcriptionOutput: document.getElementById('transcription-output'),
@@ -75,8 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         finishRecordingBtn: document.getElementById('finish-recording-btn'),
         cancelRecordingBtn: document.getElementById('cancel-recording-btn'),
         helpBtn: document.getElementById('help-btn'),
+        settingsBtn: document.getElementById('settings-btn'),
         docsModal: document.getElementById('docs-modal'),
         closeDocsModalBtn: document.getElementById('close-docs-modal-btn'),
+        sidebarNav: document.querySelector('.sidebar-nav'),
+        contentPanes: document.querySelectorAll('.content-pane'),
     };
 
     // --- UI & Chat Functions ---
@@ -87,6 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageEl = document.createElement('div');
         messageEl.classList.add('message');
         
+        const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
         messageEl.innerHTML = `
             <img src="${users[user].avatar}" alt="${users[user].name}" class="avatar">
             <div class="message-content">
@@ -94,13 +100,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="message-sender">${users[user].name}</span>
                     <span class="message-timestamp">${getTime()}</span>
                 </div>
-                <div class="message-text">${text}</div>
+                <div class="message-text">${safeText}</div>
             </div>`;
 
         DOM.messagesList.appendChild(messageEl);
         DOM.messagesList.scrollTop = DOM.messagesList.scrollHeight;
         return messageEl;
     };
+    
+    const addSystemMessage = (text) => {
+        const messageEl = document.createElement('div');
+        messageEl.classList.add('message');
+        messageEl.innerHTML = `
+             <img src="https://i.pravatar.cc/40?u=system" alt="System" class="avatar">
+             <div class="message-content">
+                <div class="message-header">
+                    <span class="message-sender">System</span>
+                    <span class="message-timestamp">${getTime()}</span>
+                </div>
+                <div class="message-text">${text}</div>
+            </div>
+        `;
+        DOM.messagesList.appendChild(messageEl);
+        DOM.messagesList.scrollTop = DOM.messagesList.scrollHeight;
+        return messageEl;
+    };
+
 
     const loadMessages = (channel) => {
         DOM.messagesList.innerHTML = '';
@@ -134,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.transcriptionBtn.disabled = !state.lastTranscription;
 
         if (window.innerWidth < 768) {
-            DOM.appContainer.classList.add('chat-view-active');
+            DOM.appContainer.classList.remove('sidebar-visible');
         }
     };
 
@@ -157,6 +182,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         DOM.addChannelModal.classList.add('hidden');
         DOM.newChannelNameInput.value = '';
+    };
+
+    const switchSidebarTab = (tabEl) => {
+        const tabName = tabEl.dataset.tab;
+        if (!tabName) return;
+
+        // Update active tab
+        document.querySelector('.nav-item.active')?.classList.remove('active');
+        tabEl.classList.add('active');
+
+        // Update active pane
+        DOM.contentPanes.forEach(pane => {
+            pane.classList.toggle('active', pane.id === `${tabName}-pane`);
+        });
     };
     
     // --- Video Call & Transcription Functions ---
@@ -215,16 +254,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleRecording = () => state.isRecording ? stopRecording() : startRecording();
 
     const processRecording = async () => {
-        addMessage(state.activeChannel, 'user', 'A meeting was recorded.');
+        addSystemMessage('A meeting was recorded.');
         const audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
         state.audioChunks = [];
 
         DOM.transcriptionPlaceholder.classList.add('hidden');
         DOM.transcriptionOutput.innerHTML = '';
         DOM.transcriptionLoading.classList.remove('hidden');
-        if(!DOM.mainContent.classList.contains('transcription-visible')) {
-            DOM.mainContent.classList.add('transcription-visible');
-        }
+        DOM.appContainer.classList.add('transcription-visible');
+
 
         try {
             const transcriptionText = await transcribeAudio(audioBlob);
@@ -232,12 +270,12 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.transcriptionOutput.textContent = state.lastTranscription;
             DOM.transcriptionLoading.classList.add('hidden');
             DOM.transcriptionBtn.disabled = false;
-            addMessage(state.activeChannel, 'user', 'Meeting transcript is ready. <button class="view-transcription-btn">View Transcript</button>');
+            addSystemMessage('Meeting transcript is ready. <button class="view-transcription-btn">View Transcript</button>');
         } catch (error) {
             console.error("Transcription Error:", error);
             DOM.transcriptionOutput.textContent = "Error transcribing audio. Please try again.";
             DOM.transcriptionLoading.classList.add('hidden');
-            addMessage(state.activeChannel, 'user', 'Sorry, there was an error generating the transcript.');
+            addSystemMessage('Sorry, there was an error generating the transcript.');
         }
     };
 
@@ -299,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.finishRecordingBtn.disabled = true;
         DOM.finishRecordingBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
 
-        const messageEl = addMessage(state.activeChannel, 'user', '');
+        const messageEl = addSystemMessage('');
         messageEl.querySelector('.message-text').innerHTML = `
             <div class="placeholder" style="display: flex; align-items: center; gap: 10px;">
                 <div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
@@ -345,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (channelItem) switchChannel(channelItem);
         });
 
-        DOM.backBtn.addEventListener('click', () => DOM.appContainer.classList.remove('chat-view-active'));
+        DOM.backBtn.addEventListener('click', () => DOM.appContainer.classList.add('sidebar-visible'));
 
         DOM.messageForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -356,10 +394,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        DOM.fileShareBtn.addEventListener('click', () => DOM.fileInput.click());
+        DOM.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                addSystemMessage(`Attached file: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`);
+            }
+            DOM.fileInput.value = ''; // Reset for next selection
+        });
+
+        DOM.sidebarNav.addEventListener('click', (e) => {
+            const tabEl = e.target.closest('.nav-item');
+            if (tabEl) switchSidebarTab(tabEl);
+        });
+
         DOM.transcriptionBtn.addEventListener('click', () => {
             if (!DOM.transcriptionBtn.disabled) {
-                DOM.mainContent.classList.toggle('transcription-visible');
-                if (DOM.mainContent.classList.contains('transcription-visible')) {
+                DOM.appContainer.classList.toggle('transcription-visible');
+                if (DOM.appContainer.classList.contains('transcription-visible')) {
                     DOM.transcriptionPlaceholder.classList.add('hidden');
                     DOM.transcriptionLoading.classList.add('hidden');
                     DOM.transcriptionOutput.textContent = state.lastTranscription;
@@ -367,10 +419,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        DOM.closeTranscriptionBtn.addEventListener('click', () => DOM.mainContent.classList.remove('transcription-visible'));
+        DOM.closeTranscriptionBtn.addEventListener('click', () => DOM.appContainer.classList.remove('transcription-visible'));
 
         DOM.messagesList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('view-transcription-btn')) DOM.transcriptionBtn.click();
+            if (e.target.classList.contains('view-transcription-btn')) {
+                if(!DOM.appContainer.classList.contains('transcription-visible')) {
+                    DOM.transcriptionBtn.click();
+                }
+            }
         });
 
         DOM.addChannelBtn.addEventListener('click', () => {
@@ -414,6 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.cancelRecordingBtn.addEventListener('click', cleanupStepRecording);
 
         DOM.helpBtn.addEventListener('click', () => DOM.docsModal.classList.remove('hidden'));
+        DOM.settingsBtn.addEventListener('click', () => alert('Settings clicked! This can be expanded to show a settings modal.'));
         DOM.closeDocsModalBtn.addEventListener('click', () => DOM.docsModal.classList.add('hidden'));
         DOM.docsModal.addEventListener('click', (e) => {
             if (e.target === DOM.docsModal) DOM.docsModal.classList.add('hidden');
@@ -428,9 +485,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const initialActiveChannel = document.querySelector('.channel.active');
         if (initialActiveChannel) {
             switchChannel(initialActiveChannel);
-        }
-        if (window.innerWidth >= 768) {
-            DOM.appContainer.classList.add('chat-view-active');
         }
     };
 
